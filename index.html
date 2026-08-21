@@ -6,7 +6,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>住宅代理合规中心 - 里程碑管理系统</title>
+    <title>合规中心 - 里程碑管理系统</title>
     <style>
         :root {
             --bg: #0f172a;
@@ -383,6 +383,8 @@
         /* 公开只读页：隐藏所有操作按钮（编辑/删除/添加/恢复），仅展示内容 */
         .public-mode .event-card-actions,
         .public-mode .report-actions { display: none !important; }
+        /* 公开只读页：隐藏内容区“全部里程碑”重复标题（页签已体现） */
+        .public-mode #contentTitle { display: none !important; }
         .mode-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.3px; }
         .mode-badge.mode-public { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.35); }
         .mode-badge.mode-admin { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
@@ -396,13 +398,13 @@
             <div class="header-icon">🛡️</div>
             <div>
                 <h1>合规中心里程碑</h1>
-                <div class="header-subtitle">住宅代理合规体系建设全记录</div>
+                <div class="header-subtitle">合规体系建设全记录</div>
             </div>
         </div>
         <div class="header-actions">
             <a class="nav-link admin-only" href="compliance-documents.html">📚 文档库</a>
             <button class="btn btn-outline btn-sm admin-only" onclick="exportData()" title="导出数据">📥 导出</button>
-            <button class="btn btn-outline btn-sm admin-only" onclick="publishSnapshot()" title="把当前数据发布到GitHub Pages，同事刷新即见最新">📤 发布到GitHub</button>
+            <button class="btn btn-outline btn-sm admin-only" onclick="publishSnapshot()" title="把当前数据打包成公开快照，发给管理员部署后即可分享给同事">📤 发布公开快照</button>
             <button class="btn btn-primary admin-only" onclick="openEventModal()">＋ 提交合规事件</button>
         </div>
     </header>
@@ -557,41 +559,6 @@
         </div>
     </div>
 
-    <!-- 发布到 GitHub 确认弹窗 -->
-    <div class="modal-overlay" id="publishModalOverlay" style="display:none;">
-        <div class="modal" style="max-width: 520px;">
-            <div class="modal-header">
-                <h2>📤 发布到 GitHub</h2>
-                <button class="btn-ghost" onclick="closePublishModal()" style="font-size:1.2rem;">✕</button>
-            </div>
-            <div class="modal-body">
-                <p style="line-height:1.7; color:var(--text);">确认将当前全部里程碑 / 事件 / 文档发布到 GitHub？</p>
-                <p style="line-height:1.7; color:var(--text-secondary);">点击「确认」后，系统会生成数据快照文件 <code style="background:var(--bg); padding:2px 6px; border-radius:4px; color:var(--primary); font-family:monospace;">public-data.js</code> 并自动下载。</p>
-                <p style="line-height:1.7; color:var(--text-secondary);">请将下载的文件发送给我（AI助手），由我推送到 GitHub Pages —— 同事刷新 GitHub 链接即见最新内容。</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closePublishModal()">取消</button>
-                <button class="btn btn-primary" onclick="confirmPublishSnapshot()">确认</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 通用提示弹窗 -->
-    <div class="modal-overlay" id="messageModalOverlay" style="display:none;">
-        <div class="modal" style="max-width: 460px;">
-            <div class="modal-header">
-                <h2 id="messageModalTitle">提示</h2>
-                <button class="btn-ghost" onclick="closeMessageModal()" style="font-size:1.2rem;">✕</button>
-            </div>
-            <div class="modal-body">
-                <p id="messageModalBody" style="line-height:1.7; color:var(--text-secondary); white-space: pre-wrap;"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="closeMessageModal()">知道了</button>
-            </div>
-        </div>
-    </div>
-
     <script src="public-data.js"></script>
     <script>
         // ============ 全局错误捕获：任何运行时错误都会在页面顶部红条显示 ============
@@ -656,31 +623,16 @@
                     documents = window.__PUBLIC_DATA__.documents || [];
                 } else {
                     const evStored = localStorage.getItem(STORAGE_KEY_EVENTS);
+                    complianceEvents = evStored ? JSON.parse(evStored) : DEFAULT_EVENTS.map(e => ({ ...e }));
+                    if (!evStored && !isPublicMode) saveEvents();
+
                     const msStored = localStorage.getItem(STORAGE_KEY_MILESTONES);
-                    const evData = evStored ? JSON.parse(evStored) : null;
-                    const msData = msStored ? JSON.parse(msStored) : null;
-                    const evEmpty = !evData || !Array.isArray(evData) || evData.length === 0;
-                    const msEmpty = !msData || !Array.isArray(msData) || msData.length === 0;
-                    // 管理模式：访客（同事）浏览器无本地数据（或仅占位空数组）时，自动回退到
-                    // 部署的共享快照，保证同事打开管理链接也能看到同一份内容；不写入 localStorage，避免发散。
-                    const snap = window.__PUBLIC_DATA__;
-                    const snapOk = snap && Array.isArray(snap.milestones) && snap.milestones.length;
-                    if (evEmpty && msEmpty && snapOk) {
-                        milestones = snap.milestones || [];
-                        complianceEvents = snap.events || [];
-                        reportOverrides = snap.reportOverrides || {};
-                        documents = snap.documents || [];
-                    } else {
-                        complianceEvents = evStored ? JSON.parse(evStored) : DEFAULT_EVENTS.map(e => ({ ...e }));
-                        if (!evStored) saveEvents();
+                    milestones = msStored ? JSON.parse(msStored) : DEFAULT_MILESTONES.map(m => ({ ...m }));
+                    if (!msStored && !isPublicMode) saveMilestones();
 
-                        milestones = msStored ? JSON.parse(msStored) : DEFAULT_MILESTONES.map(m => ({ ...m }));
-                        if (!msStored) saveMilestones();
-
-                        const docStored = localStorage.getItem(DOCUMENTS_KEY);
-                        documents = docStored ? JSON.parse(docStored) : [];
-                        loadReportOverrides();
-                    }
+                    const docStored = localStorage.getItem(DOCUMENTS_KEY);
+                    documents = docStored ? JSON.parse(docStored) : [];
+                    loadReportOverrides();
                 }
 
                 bindFilterEvents();
@@ -693,17 +645,8 @@
             }
         }
 
-        // ============ 发布到 GitHub：把当前管理端数据导出为 public-data.js 快照 ============
+        // ============ 公开快照发布：把当前管理端数据导出为 public-data.js ============
         function publishSnapshot() {
-            const overlay = document.getElementById('publishModalOverlay');
-            if (overlay) overlay.style.display = 'flex';
-        }
-        function closePublishModal() {
-            const overlay = document.getElementById('publishModalOverlay');
-            if (overlay) overlay.style.display = 'none';
-        }
-        function confirmPublishSnapshot() {
-            closePublishModal();
             try {
                 const snapshot = {
                     milestones: milestones,
@@ -722,22 +665,10 @@
                 a.click();
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-                showMessageModal('发布成功', '已生成 public-data.js（含当前全部里程碑 / 事件 / 文档）。\n\n请把这个文件发送给我（AI助手），由我推送到 GitHub Pages —— 同事打开 GitHub 链接就能看到最新数据。\n\n之后每次更新里程碑，重新点一次「📤 发布到GitHub」并把新文件发我即可刷新。');
+                alert('已生成 public-data.js（含当前全部里程碑 / 事件 / 文档）。\n\n请把这个文件发给我（或保存到工作目录），我帮你部署到公开页 —— 同事打开分享链接就能看到你的数据。\n\n之后每次你更新了里程碑，重新点一次「📤 发布公开快照」并把新文件发我即可刷新公开页。');
             } catch (err) {
-                showDebug('发布失败：' + err.message);
+                showDebug('发布快照失败：' + err.message);
             }
-        }
-        function showMessageModal(title, body) {
-            const overlay = document.getElementById('messageModalOverlay');
-            const titleEl = document.getElementById('messageModalTitle');
-            const bodyEl = document.getElementById('messageModalBody');
-            if (titleEl) titleEl.textContent = title;
-            if (bodyEl) bodyEl.textContent = body;
-            if (overlay) overlay.style.display = 'flex';
-        }
-        function closeMessageModal() {
-            const overlay = document.getElementById('messageModalOverlay');
-            if (overlay) overlay.style.display = 'none';
         }
 
         // ============ 存储 ============
