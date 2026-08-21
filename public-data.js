@@ -36,8 +36,8 @@ window.__PUBLIC_DATA__ = {
     {
       "id": "ms-e1786156998492",
       "title": "日志审计工作台正式上线",
-      "date": "2026-04-23",
-      "category": "技术合规",
+      "date": "2026-04-20",
+      "category": "团队建设",
       "importance": "常规级",
       "status": "已完成",
       "description": "日志审计工作台初版上线，聚合公司所有产品用户日志信息，配置预警规则，实现风控自动触发与日志审计的闭环。",
@@ -65,6 +65,28 @@ window.__PUBLIC_DATA__ = {
       "description": "完成首个视频KYC验证，打通视频身份核验全流程，标志KYC能力从文档审核升级为实时交互核验，为高风险客户准入提供了更强的风控支撑。增强合规技术防线",
       "sourceEventId": "e1787218030266",
       "rawDescription": "完成首个视频KYC验证，打通视频身份核验全流程，标志KYC能力从文档审核升级为实时交互核验，为高风险客户准入提供了更强的风控支撑。"
+    },
+    {
+      "id": "ms-e1787276169939",
+      "title": "《GDPR合规执行方案》落地并启动实施",
+      "date": "2026-08-14",
+      "category": "制度建设",
+      "importance": "战略级",
+      "status": "已完成",
+      "description": "针对Talordata项目完成GDPR合规执行方案梳理，明确合规要求和落地路径，并据此启动GDPR合规工作，推动数据处理流程向欧盟合规标准对齐。结束了此前无标准可依的状态，为合规质量与效率提升提供了制度保障",
+      "sourceEventId": "e1787276169939",
+      "rawDescription": "针对Talordata项目完成GDPR合规执行方案梳理，明确合规要求和落地路径，并据此启动GDPR合规工作，推动数据处理流程向欧盟合规标准对齐。"
+    },
+    {
+      "id": "ms-e1786157501636",
+      "title": "合规审计标准化流程",
+      "date": "2026-06-12",
+      "category": "制度建设",
+      "importance": "重要级",
+      "status": "已完成",
+      "description": "制定并持续完善合规审计标准化流程。迈出制度建设第一步，为后续正式发布与落地奠定基础",
+      "sourceEventId": "e1786157501636",
+      "rawDescription": "着手制定并持续完善 合规审计标准化流程"
     }
   ],
   "events": [
@@ -123,6 +145,14 @@ window.__PUBLIC_DATA__ = {
       "category": "技术合规",
       "importance": "战略级",
       "description": "完成首个视频KYC验证，打通视频身份核验全流程，标志KYC能力从文档审核升级为实时交互核验，为高风险客户准入提供了更强的风控支撑。"
+    },
+    {
+      "id": "e1787276169939",
+      "eventTitle": "《GDPR合规执行方案》落地并启动实施",
+      "date": "2026-08-14",
+      "category": "制度建设",
+      "importance": "战略级",
+      "description": "针对Talordata项目完成GDPR合规执行方案梳理，明确合规要求和落地路径，并据此启动GDPR合规工作，推动数据处理流程向欧盟合规标准对齐。"
     }
   ],
   "reportOverrides": {
@@ -148,5 +178,5 @@ window.__PUBLIC_DATA__ = {
     }
   },
   "documents": [],
-  "exportedAt": "2026-08-20T09:28:05.523Z"
+  "exportedAt": "2026-08-21T01:46:19.531Z"
 };
