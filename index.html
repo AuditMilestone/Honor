@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>住宅代理合规中心 - 里程碑管理系统</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #273548;
+            --border: #334155;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --strategic: #ef4444;
+            --important: #f59e0b;
+            --routine: #22c55e;
+            --cat-system: #8b5cf6;
+            --cat-tech: #06b6d4;
+            --cat-team: #10b981;
+            --cat-external: #f97316;
+            --cat-emergency: #ef4444;
+            --cat-regulatory: #eab308;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .debug-bar {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: #ef4444; color: #fff; padding: 8px 16px;
+            font-size: 0.8rem; z-index: 999; display: none;
+            font-family: monospace;
+        }
+
+        .header {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(20px);
+            box-shadow: var(--shadow);
+        }
+        .header-left { display: flex; align-items: center; gap: 12px; }
+        .header-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            border-radius: var(--radius-sm);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+        }
+        .header h1 { font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+        .header-subtitle { font-size: 0.8rem; color: var(--text-secondary); font-weight: 400; margin-top: -2px; }
+        .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+        .nav-link {
+            color: var(--text-secondary); text-decoration: none;
+            font-size: 0.85rem; font-weight: 600;
+            padding: 8px 12px; border-radius: var(--radius-sm);
+            transition: var(--transition);
+            display: flex; align-items: center; gap: 6px;
+            border: 1px solid transparent;
+        }
+        .nav-link:hover { color: var(--text); background: var(--surface-hover); border-color: var(--border); }
+        .btn {
+            padding: 10px 20px; border-radius: var(--radius-sm); border: none;
+            cursor: pointer; font-size: 0.875rem; font-weight: 600;
+            transition: var(--transition); display: flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4); }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { background: var(--surface-hover); border-color: #64748b; }
+        .btn-sm { padding: 6px 12px; font-size: 0.75rem; border-radius: 6px; }
+        .btn-success { background: var(--routine); color: #04210f; }
+        .btn-success:hover { filter: brightness(1.08); }
+        .btn-ghost {
+            background: transparent; color: var(--text-secondary); border: none;
+            padding: 6px 10px; cursor: pointer; border-radius: 6px; font-size: 0.8rem; transition: var(--transition);
+        }
+        .btn-ghost:hover { background: var(--surface-hover); color: var(--text); }
+
+        .main-container { display: flex; height: calc(100vh - 73px); }
+
+        .sidebar {
+            width: 280px; background: var(--surface); border-right: 1px solid var(--border);
+            padding: 24px 20px; display: flex; flex-direction: column; gap: 24px;
+            overflow-y: auto; flex-shrink: 0;
+        }
+        .sidebar-section h3 {
+            font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
+            color: var(--text-secondary); margin-bottom: 10px; font-weight: 700;
+        }
+        .filter-chips { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .chip {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 10px; border-radius: var(--radius-sm); font-size: 0.78rem;
+            cursor: pointer; border: 1px solid var(--border); background: var(--bg);
+            color: var(--text-secondary); transition: var(--transition);
+            font-weight: 500; user-select: none; min-height: 36px;
+            position: relative; z-index: 1; overflow: hidden;
+        }
+        .chip::before {
+            content: ''; width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-secondary); flex-shrink: 0;
+            box-shadow: 0 0 0 2px rgba(148, 163, 184, 0.15);
+        }
+        .chip:hover { border-color: #64748b; color: var(--text); background: var(--surface-hover); }
+        .chip.active { background: var(--primary); border-color: var(--primary); color: #fff; font-weight: 600; }
+        .chip.active::before { background: #fff; box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25); }
+        .chip:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .chip.cat-system::before { background: var(--cat-system); box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2); }
+        .chip.cat-tech::before { background: var(--cat-tech); box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2); }
+        .chip.cat-team::before { background: var(--cat-team); box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2); }
+        .chip.cat-external::before { background: var(--cat-external); box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2); }
+        .chip.cat-emergency::before { background: var(--cat-emergency); box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+        .chip.active.cat-system { background: var(--cat-system); border-color: var(--cat-system); }
+        .chip.active.cat-tech { background: var(--cat-tech); border-color: var(--cat-tech); }
+        .chip.active.cat-team { background: var(--cat-team); border-color: var(--cat-team); }
+        .chip.active.cat-external { background: var(--cat-external); border-color: var(--cat-external); }
+        .chip.active.cat-emergency { background: var(--cat-emergency); border-color: var(--cat-emergency); }
+        .chip.cat-regulatory::before { background: var(--cat-regulatory); box-shadow: 0 0 0 2px rgba(234, 179, 8, 0.2); }
+        .chip.active.cat-regulatory { background: var(--cat-regulatory); border-color: var(--cat-regulatory); }
+        .chip[data-imp="战略级"]::before { background: var(--strategic); box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2); }
+        .chip[data-imp="重要级"]::before { background: var(--important); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2); }
+        .chip[data-imp="常规级"]::before { background: var(--routine); box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.2); }
+
+        .year-list { display: flex; flex-direction: column; gap: 2px; }
+        .month-list { display: none; flex-direction: column; gap: 2px; margin: 2px 0 6px 14px; border-left: 2px solid var(--border); padding-left: 10px; }
+        .year-item.expanded + .month-list { display: flex; }
+        .month-item { padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 0.76rem; color: var(--text-secondary); transition: var(--transition); display: flex; justify-content: space-between; align-items: center; outline: none; }
+        .month-item:hover { background: var(--surface-hover); color: var(--text); }
+        .month-item.active { background: var(--primary); color: #fff; font-weight: 600; }
+        .month-item .month-count { font-size: 0.66rem; background: var(--border); padding: 1px 7px; border-radius: 9px; }
+        .month-item.active .month-count { background: rgba(255, 255, 255, 0.25); }
+        .chip-tip { position: fixed; z-index: 9999; max-width: 260px; background: #0f172a; color: #e2e8f0; border: 1px solid rgba(148, 165, 184, 0.35); padding: 9px 12px; border-radius: 9px; font-size: 0.74rem; line-height: 1.55; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45); pointer-events: none; display: none; }
+        .year-item {
+            padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
+            color: var(--text-secondary); transition: var(--transition);
+            display: flex; justify-content: space-between; align-items: center; outline: none;
+        }
+        .year-item:hover { background: var(--surface-hover); color: var(--text); }
+        .year-item.active { background: var(--primary); color: #fff; font-weight: 600; }
+        .year-item:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+        .year-count { font-size: 0.7rem; background: var(--border); padding: 2px 8px; border-radius: 10px; font-weight: 500; }
+        .year-item.active .year-count { background: rgba(255, 255, 255, 0.25); }
+
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .stat-card { background: var(--bg); border-radius: var(--radius-sm); padding: 14px; text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; }
+        .stat-label { font-size: 0.7rem; color: var(--text-secondary); margin-top: 2px; }
+        .stat-value.cat-system-color { color: var(--cat-system); }
+        .stat-value.cat-tech-color { color: var(--cat-tech); }
+        .stat-value.cat-team-color { color: var(--cat-team); }
+        .stat-value.cat-external-color { color: var(--cat-external); }
+        .stat-value.cat-regulatory-color { color: var(--cat-regulatory); }
+
+        .content { flex: 1; overflow-y: auto; padding: 32px 40px; }
+        .content-tabs { display: flex; gap: 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+        .tab {
+            padding: 10px 18px; background: transparent; border: none; border-bottom: 2px solid transparent;
+            color: var(--text-secondary); cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: var(--transition);
+        }
+        .tab:hover { color: var(--text); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+        .tab-panel { animation: fadeIn 0.2s ease; }
+
+        .content-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .content-header h2 { font-size: 1.4rem; font-weight: 700; letter-spacing: -0.02em; }
+        .result-count { font-size: 0.8rem; color: var(--text-secondary); }
+
+        .timeline { position: relative; padding-left: 40px; }
+        .timeline::before {
+            content: ''; position: absolute; left: 15px; top: 8px; bottom: 8px;
+            width: 2px; background: var(--border); border-radius: 1px;
+        }
+        .timeline-item { position: relative; margin-bottom: 28px; cursor: pointer; transition: var(--transition); }
+        .timeline-item:hover .milestone-card { border-color: #64748b; transform: translateX(4px); }
+        .timeline-item.expanded .milestone-card { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
+        .timeline-dot {
+            position: absolute; left: -33px; top: 20px; width: 14px; height: 14px;
+            border-radius: 50%; background: var(--border); border: 3px solid var(--bg); z-index: 1; transition: var(--transition);
+        }
+        .timeline-dot.strategic { background: var(--strategic); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2); }
+        .timeline-dot.important { background: var(--important); box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.2); }
+        .timeline-dot.routine { background: var(--routine); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0.2); }
+        .milestone-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 24px; transition: var(--transition); position: relative; }
+        .milestone-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .milestone-title { font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; flex: 1; min-width: 200px; }
+        .milestone-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+        .badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; font-weight: 600; letter-spacing: 0.02em; white-space: nowrap; }
+        .badge-strategic { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .badge-important { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
+        .badge-routine { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+        .badge-cat { background: rgba(255, 255, 255, 0.06); color: var(--text-secondary); }
+        .badge-cat.cat-system { color: #a78bfa; background: rgba(139, 92, 246, 0.12); }
+        .badge-cat.cat-tech { color: #22d3ee; background: rgba(6, 182, 212, 0.12); }
+        .badge-cat.cat-team { color: #34d399; background: rgba(16, 185, 129, 0.12); }
+        .badge-cat.cat-external { color: #fb923c; background: rgba(249, 115, 22, 0.12); }
+        .badge-cat.cat-emergency { color: #f87171; background: rgba(239, 68, 68, 0.12); }
+        .badge-cat.cat-regulatory { color: #fde047; background: rgba(234, 179, 8, 0.12); }
+        .milestone-date { font-size: 0.8rem; color: var(--text-secondary); margin-top: 8px; }
+        .milestone-tags { font-size: 0.78rem; color: var(--text-secondary); margin-top: 8px; letter-spacing: 0.01em; }
+        .milestone-desc { font-size: 0.9rem; line-height: 1.7; color: var(--text); margin-top: 10px; white-space: pre-wrap; border-left: 3px solid var(--primary); padding-left: 12px; }
+        .milestone-detail { display: none; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+        .timeline-item.expanded .milestone-detail { display: block; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 0.85rem; }
+        .detail-label { font-weight: 600; color: var(--text); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .detail-value { color: var(--text-secondary); margin-top: 2px; white-space: pre-wrap; }
+        .detail-full { grid-column: 1 / -1; }
+        .detail-actions { margin-top: 12px; display: flex; gap: 8px; }
+        .phase-events-block { grid-column: 1 / -1; }
+        .phase-event-row { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--border); font-size: 0.82rem; }
+        .phase-event-row:last-child { border-bottom: none; }
+        .phase-event-date { color: var(--text-secondary); min-width: 92px; }
+        .phase-event-body { flex: 1; }
+
+        .empty-state { text-align: center; padding: 60px 40px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 56px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { font-size: 1.2rem; margin-bottom: 8px; color: var(--text); }
+
+        /* 合规事件列表 */
+        .event-list { display: flex; flex-direction: column; gap: 14px; }
+        .event-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; }
+        .event-card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .event-card-title { font-size: 1rem; font-weight: 700; flex: 1; min-width: 200px; }
+        .event-card-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+        .event-card-date { font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px; }
+        .event-card-desc { font-size: 0.875rem; color: var(--text-secondary); margin-top: 8px; white-space: pre-wrap; }
+        .event-card-actions { margin-top: 12px; display: flex; gap: 8px; }
+
+        /* 报告阶段 */
+        .report-phase { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 26px; margin-bottom: 22px; }
+        .report-phase-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; margin-bottom: 14px; }
+        .report-phase-title { font-size: 1.15rem; font-weight: 700; }
+        .report-phase-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+        .report-phase-events { display: flex; flex-direction: column; gap: 8px; margin: 14px 0; padding: 14px 16px; background: var(--bg); border-radius: var(--radius-sm); }
+        .report-event-row { display: flex; gap: 10px; font-size: 0.82rem; }
+        .report-event-date { color: var(--text-secondary); min-width: 92px; flex-shrink: 0; }
+        .report-event-body { flex: 1; }
+        .report-event-title { font-weight: 600; }
+        .report-event-desc { color: var(--text-secondary); font-size: 0.8rem; margin-top: 2px; }
+        .report-text { font-size: 0.9rem; line-height: 1.7; margin-top: 10px; }
+        .report-text .label { font-weight: 700; color: var(--text); }
+        .report-text .summary { color: var(--primary); }
+        .report-text .trend { color: var(--cat-team); }
+        .report-actions { margin-top: 16px; display: flex; gap: 10px; align-items: center; }
+        .added-tag { font-size: 0.8rem; color: var(--routine); font-weight: 600; display: flex; align-items: center; gap: 6px; }
+
+        /* 报告里程碑卡片（一事件一里程碑） */
+        .report-year { margin-bottom: 26px; }
+        .report-year-head { font-size: 1.05rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 12px; padding-left: 10px; border-left: 3px solid var(--primary); }
+        .report-milestone { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 22px; margin-bottom: 12px; }
+        .report-milestone-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+        .report-milestone-title { font-size: 1.02rem; font-weight: 700; flex: 1; min-width: 200px; letter-spacing: -0.01em; }
+        .report-milestone-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+        .report-milestone-tags { font-size: 0.78rem; color: var(--text-secondary); margin-top: 8px; }
+        .report-milestone-desc { font-size: 0.9rem; line-height: 1.7; color: var(--text); margin-top: 10px; white-space: pre-wrap; border-left: 3px solid var(--primary); padding-left: 12px; }
+        .report-milestone.report-mile-edit { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12); }
+        .report-milestone-edit-fields { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+        .report-edited-badge { font-size: 0.7rem; padding: 3px 10px; border-radius: 12px; font-weight: 600; background: rgba(245, 158, 11, 0.15); color: #fbbf24; white-space: nowrap; }
+        .report-milestone.is-added { border-left: 4px solid var(--routine); background: rgba(34, 197, 94, 0.06); }
+        .report-added-flag { display: inline-block; font-size: 0.72rem; font-weight: 700; color: #16a34a; background: rgba(34, 197, 94, 0.16); padding: 3px 11px; border-radius: 12px; margin-bottom: 10px; }
+        .report-added-section { margin-top: 30px; padding-top: 22px; border-top: 1px dashed var(--border); }
+        .report-added-head { color: #16a34a; }
+        .report-year-sub { font-size: 0.78rem; font-weight: 500; color: var(--text-secondary); margin-left: 10px; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); z-index: 200; display: flex;
+            align-items: center; justify-content: center; animation: fadeIn 0.2s ease;
+        }
+        .modal {
+            background: var(--surface); border-radius: var(--radius); width: 90%;
+            max-width: 680px; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5); border: 1px solid var(--border);
+        }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: var(--surface); z-index: 1; border-radius: var(--radius) var(--radius) 0 0; }
+        .modal-header h2 { font-size: 1.15rem; font-weight: 700; }
+        .modal-body { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; position: sticky; bottom: 0; background: var(--surface); border-radius: 0 0 var(--radius) var(--radius); }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text); letter-spacing: 0.02em; }
+        .form-group input, .form-group select, .form-group textarea {
+            padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border);
+            background: var(--bg); color: var(--text); font-size: 0.9rem; font-family: inherit;
+            transition: var(--transition); resize: vertical;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
+        .form-group textarea { min-height: 80px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-hint { font-size: 0.7rem; color: var(--text-secondary); }
+        .req { color: #f87171; }
+
+        /* 自定义日期选择器 */
+        .date-picker { position: relative; }
+        .date-picker input {
+            width: 100%; padding-right: 34px; cursor: pointer;
+            background: var(--bg); color: var(--text);
+        }
+        .date-picker-icon {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            font-size: 0.9rem; pointer-events: none; opacity: 0.7;
+        }
+        .date-picker-popup {
+            position: absolute; top: calc(100% + 6px); left: 0;
+            width: 280px; background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius-sm); box-shadow: var(--shadow); z-index: 10;
+            padding: 12px; animation: fadeIn 0.15s ease;
+        }
+        .date-picker-head {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border);
+        }
+        .date-picker-head span { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+        .date-picker-nav {
+            display: flex; gap: 4px;
+        }
+        .date-picker-nav button {
+            background: var(--bg); border: 1px solid var(--border); color: var(--text-secondary);
+            border-radius: 4px; width: 26px; height: 26px; cursor: pointer; font-size: 0.75rem;
+            display: flex; align-items: center; justify-content: center; transition: var(--transition);
+        }
+        .date-picker-nav button:hover { background: var(--surface-hover); color: var(--text); border-color: #64748b; }
+        .date-picker-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+        }
+        .date-picker-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem; border-radius: 6px; cursor: pointer;
+            color: var(--text); background: transparent; transition: var(--transition);
+        }
+        .date-picker-cell:hover:not(.disabled):not(.selected) { background: var(--surface-hover); }
+        .date-picker-cell.selected { background: var(--primary); color: #fff; font-weight: 600; }
+        .date-picker-cell.today:not(.selected) { border: 1px solid var(--primary); color: var(--primary); }
+        .date-picker-cell.disabled { color: var(--text-secondary); opacity: 0.4; cursor: default; }
+        .date-picker-weekday {
+            font-size: 0.7rem; color: var(--text-secondary); text-align: center;
+            padding-bottom: 6px; font-weight: 600;
+        }
+
+        .toast {
+            position: fixed; bottom: 32px; right: 32px; background: #22c55e; color: #000;
+            padding: 14px 24px; border-radius: var(--radius-sm); font-weight: 600; font-size: 0.9rem;
+            z-index: 300; animation: slideUp 0.3s ease; box-shadow: 0 8px 32px rgba(34, 197, 94, 0.3);
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; }
+            .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; gap: 16px; padding: 16px; border-right: none; border-bottom: 1px solid var(--border); }
+            .sidebar-section { flex: 1; min-width: 140px; }
+            .content { padding: 20px 16px; }
+            .timeline { padding-left: 30px; }
+            .detail-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .header { padding: 12px 16px; }
+            .header h1 { font-size: 1rem; }
+            .nav-link { display: none; }
+        }
+        /* 权限方案C：公开只读 / 管理模式 分入口 */
+        .public-mode .admin-only { display: none !important; }
+        /* 公开只读页：隐藏所有操作按钮（编辑/删除/添加/恢复），仅展示内容 */
+        .public-mode .event-card-actions,
+        .public-mode .report-actions { display: none !important; }
+        .mode-badge { display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.3px; }
+        .mode-badge.mode-public { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.35); }
+        .mode-badge.mode-admin { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); }
+    </style>
+</head>
+<body>
+    <div class="debug-bar" id="debugBar"></div>
+
+    <header class="header">
+        <div class="header-left">
+            <div class="header-icon">🛡️</div>
+            <div>
+                <h1>合规中心里程碑</h1>
+                <div class="header-subtitle">住宅代理合规体系建设全记录</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <a class="nav-link admin-only" href="compliance-documents.html">📚 文档库</a>
+            <button class="btn btn-outline btn-sm admin-only" onclick="exportData()" title="导出数据">📥 导出</button>
+            <button class="btn btn-outline btn-sm admin-only" onclick="publishSnapshot()" title="把当前数据发布到GitHub Pages，同事刷新即见最新">📤 发布到GitHub</button>
+            <button class="btn btn-primary admin-only" onclick="openEventModal()">＋ 提交合规事件</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h3>📂 分类筛选</h3>
+                <div class="filter-chips" id="categoryFilters">
+                    <span class="chip active" data-cat="all" tabindex="0" role="button">全部</span>
+                    <span class="chip cat-system" data-cat="制度建设" tabindex="0" role="button" data-tip="合规政策发布、SOP上线、风控规则迭代">制度建设</span>
+                    <span class="chip cat-tech" data-cat="技术合规" tabindex="0" role="button" data-tip="KYC/AML系统上线、流量审计系统部署、日志留存方案落地">技术合规</span>
+                    <span class="chip cat-team" data-cat="团队建设" tabindex="0" role="button" data-tip="合规委员会成立、专职合规官任命、全员合规培训完成">团队建设</span>
+                    <span class="chip cat-external" data-cat="对外合作" tabindex="0" role="button" data-tip="与行业协会签约、通过客户合规尽调、获得安全认证（如ISO 27001）">对外合作</span>
+                    <span class="chip cat-emergency" data-cat="应急响应" tabindex="0" role="button" data-tip="重大违规事件处置、监管问询应对、合规漏洞修复">应急响应</span>
+                    <span class="chip cat-regulatory" data-cat="监管合规" tabindex="0" role="button" data-tip="牌照获取、监管报备完成、合规审计通过">监管合规</span>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>⭐ 重要性</h3>
+                <div class="filter-chips" id="importanceFilters">
+                    <span class="chip active" data-imp="all" tabindex="0" role="button">全部</span>
+                    <span class="chip" data-imp="战略级" tabindex="0" role="button">战略级</span>
+                    <span class="chip" data-imp="重要级" tabindex="0" role="button">重要级</span>
+                    <span class="chip" data-imp="常规级" tabindex="0" role="button">常规级</span>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>📅 年份</h3>
+                <div class="year-list" id="yearFilters">
+                    <div class="year-item active" data-year="all" tabindex="0" role="button">
+                        全部年份 <span class="year-count" id="totalCount">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="sidebar-section">
+                <h3>📊 统计概览</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value cat-system-color" id="statSystem">0</div>
+                        <div class="stat-label">制度建设</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value cat-tech-color" id="statTech">0</div>
+                        <div class="stat-label">技术合规</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value cat-team-color" id="statTeam">0</div>
+                        <div class="stat-label">团队建设</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value cat-external-color" id="statExternal">0</div>
+                        <div class="stat-label">对外合作</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value cat-regulatory-color" id="statRegulatory">0</div>
+                        <div class="stat-label">监管合规</div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="content">
+            <div class="content-tabs">
+                <button class="tab active" data-tab="milestones" onclick="switchTab('milestones')">📋 全部里程碑</button>
+                <button class="tab admin-only" data-tab="events" onclick="switchTab('events')">📝 合规事件</button>
+                <button class="tab admin-only" data-tab="report" onclick="switchTab('report')">📊 里程碑报告</button>
+            </div>
+
+            <!-- 全部里程碑 -->
+            <div id="tab-milestones" class="tab-panel">
+                <div class="content-header">
+                    <h2 id="contentTitle">全部里程碑</h2>
+                    <span class="result-count" id="resultCount">共 0 条记录</span>
+                </div>
+                <div class="timeline" id="timelineContainer"></div>
+            </div>
+
+            <!-- 合规事件 -->
+            <div id="tab-events" class="tab-panel" style="display:none;">
+                <div class="content-header">
+                    <h2>合规事件</h2>
+                    <button class="btn btn-primary btn-sm admin-only" onclick="openEventModal()">＋ 提交合规事件</button>
+                </div>
+                <div class="event-list" id="eventListContainer"></div>
+            </div>
+
+            <!-- 里程碑报告 -->
+            <div id="tab-report" class="tab-panel" style="display:none;">
+                <div class="content-header">
+                    <h2>合规里程碑报告</h2>
+                    <span class="result-count" id="reportCount"></span>
+                </div>
+                <div id="reportContainer"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- 提交合规事件 弹窗 -->
+    <div class="modal-overlay" id="eventModalOverlay" style="display:none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="eventModalTitle">提交合规事件</h2>
+                <button class="btn-ghost" onclick="closeEventModal()" style="font-size:1.2rem;">✕</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editEventId">
+                <div class="form-group">
+                    <label>事件标题 <span class="req">*</span> <span class="form-hint">一句话概括；制度/流程类加《》与版本号，以动词结尾（发布/上线/成立/启动/扩充…）</span></label>
+                    <input type="text" id="formEventTitle" placeholder="例：《合规审计标准化流程》V1.0 发布" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group date-picker-group">
+                        <label>日期 <span class="req">*</span> <span class="form-hint">事件发生的时间</span></label>
+                        <div class="date-picker" id="datePicker">
+                            <input type="text" id="formEventDate" readonly placeholder="选择日期" required>
+                            <span class="date-picker-icon">📅</span>
+                            <div class="date-picker-popup" id="datePickerPopup" style="display:none;"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>分类 <span class="req">*</span></label>
+                        <select id="formEventCategory" required>
+                            <option value="">请选择分类</option>
+                            <option value="制度建设">🏛️ 制度建设</option>
+                            <option value="技术合规">💻 技术合规</option>
+                            <option value="团队建设">👥 团队建设</option>
+                            <option value="对外合作">🤝 对外合作</option>
+                            <option value="应急响应">🚨 应急响应</option>
+                            <option value="监管合规">📜 监管合规</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>重要性 <span class="req">*</span></label>
+                    <select id="formEventImportance" required>
+                        <option value="">请选择重要性</option>
+                        <option value="战略级">🔴 战略级 — 影响公司合规根基</option>
+                        <option value="重要级">🟡 重要级 — 显著提升合规水平</option>
+                        <option value="常规级">🟢 常规级 — 日常合规建设推进</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>简要描述 <span class="form-hint">2-3 句话说明事件背景与内容</span></label>
+                    <textarea id="formEventDesc" placeholder="例：发布首版合规政策，覆盖IP来源知情同意框架、数据最小化原则、终端用户退出机制三大模块。"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeEventModal()">取消</button>
+                <button class="btn btn-primary" onclick="saveEvent()" id="saveEventBtn">提交事件</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 发布到 GitHub 确认弹窗 -->
+    <div class="modal-overlay" id="publishModalOverlay" style="display:none;">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header">
+                <h2>📤 发布到 GitHub</h2>
+                <button class="btn-ghost" onclick="closePublishModal()" style="font-size:1.2rem;">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="line-height:1.7; color:var(--text);">确认将当前全部里程碑 / 事件 / 文档发布到 GitHub？</p>
+                <p style="line-height:1.7; color:var(--text-secondary);">点击「确认」后，系统会生成数据快照文件 <code style="background:var(--bg); padding:2px 6px; border-radius:4px; color:var(--primary); font-family:monospace;">public-data.js</code> 并自动下载。</p>
+                <p style="line-height:1.7; color:var(--text-secondary);">请将下载的文件发送给我（AI助手），由我推送到 GitHub Pages —— 同事刷新 GitHub 链接即见最新内容。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closePublishModal()">取消</button>
+                <button class="btn btn-primary" onclick="confirmPublishSnapshot()">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用提示弹窗 -->
+    <div class="modal-overlay" id="messageModalOverlay" style="display:none;">
+        <div class="modal" style="max-width: 460px;">
+            <div class="modal-header">
+                <h2 id="messageModalTitle">提示</h2>
+                <button class="btn-ghost" onclick="closeMessageModal()" style="font-size:1.2rem;">✕</button>
+            </div>
+            <div class="modal-body">
+                <p id="messageModalBody" style="line-height:1.7; color:var(--text-secondary); white-space: pre-wrap;"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeMessageModal()">知道了</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="public-data.js"></script>
+    <script>
+        // ============ 全局错误捕获：任何运行时错误都会在页面顶部红条显示 ============
+        function showDebug(msg) {
+            const bar = document.getElementById('debugBar');
+            if (bar) { bar.style.display = 'block'; bar.textContent = '⚠️ 运行错误：' + msg; }
+            console.error(msg);
+        }
+        window.addEventListener('error', function (e) {
+            showDebug((e.message || '未知错误') + (e.filename ? ' @ ' + e.filename + ':' + e.lineno : ''));
+        });
+
+        console.log('Compliance App v3.0 loaded');
+
+        const STORAGE_KEY_EVENTS = 'compliance_events';
+        const STORAGE_KEY_MILESTONES = 'compliance_milestones';
+        const DOCUMENTS_KEY = 'compliance_documents';
+        const STORAGE_KEY_REPORT_OVERRIDES = 'compliance_report_overrides';
+
+        let complianceEvents = [];
+        let milestones = [];
+        let documents = [];
+        let activeFilters = { category: 'all', importance: 'all', year: 'all', month: 'all' };
+        let expandedYears = new Set();
+        let currentTab = 'milestones';
+        let reportOverrides = {};        // { [eventId]: { title, description } } —— 报告编辑覆盖层
+        let editingReportIds = new Set(); // 当前处于编辑态的报告卡片 eventId 集合
+        let isPublicMode = false;         // 权限方案C：是否为公开只读入口
+
+        const IMP_RANK = { '战略级': 3, '重要级': 2, '常规级': 1 };
+
+        const DEFAULT_MILESTONES = [];
+        const DEFAULT_EVENTS = [];
+
+        // ============ 权限方案C：公开/管理分入口 ============
+        function applyAccessMode() {
+            // 访问路径含 'admin'（如 admin.html）为管理模式；否则为公开只读（分享链接）。
+            let isAdmin = true;
+            try { isAdmin = location.pathname.toLowerCase().indexOf('admin') !== -1; }
+            catch (e) { isAdmin = true; } // 读取失败默认放行管理，避免锁死
+            isPublicMode = !isAdmin;
+            if (isPublicMode) document.body.classList.add('public-mode');
+            const actions = document.querySelector('.header-actions');
+            if (actions && isAdmin) {
+                const badge = document.createElement('span');
+                badge.className = 'mode-badge mode-admin';
+                badge.textContent = '🛠 管理模式';
+                actions.appendChild(badge);
+            }
+            // 公开只读模式不显示徽章（保持页面干净）
+        }
+
+        function init() {
+            applyAccessMode();
+            try {
+                // 公开只读模式：数据来自部署时注入的快照 window.__PUBLIC_DATA__，
+                // 不读取、不写入访客本地 localStorage，保证所有访客看到同一份（你的）内容。
+                if (isPublicMode && window.__PUBLIC_DATA__ && window.__PUBLIC_DATA__.milestones) {
+                    milestones = window.__PUBLIC_DATA__.milestones || [];
+                    complianceEvents = window.__PUBLIC_DATA__.events || [];
+                    reportOverrides = window.__PUBLIC_DATA__.reportOverrides || {};
+                    documents = window.__PUBLIC_DATA__.documents || [];
+                } else {
+                    const evStored = localStorage.getItem(STORAGE_KEY_EVENTS);
+                    const msStored = localStorage.getItem(STORAGE_KEY_MILESTONES);
+                    const evData = evStored ? JSON.parse(evStored) : null;
+                    const msData = msStored ? JSON.parse(msStored) : null;
+                    const evEmpty = !evData || !Array.isArray(evData) || evData.length === 0;
+                    const msEmpty = !msData || !Array.isArray(msData) || msData.length === 0;
+                    // 管理模式：访客（同事）浏览器无本地数据（或仅占位空数组）时，自动回退到
+                    // 部署的共享快照，保证同事打开管理链接也能看到同一份内容；不写入 localStorage，避免发散。
+                    const snap = window.__PUBLIC_DATA__;
+                    const snapOk = snap && Array.isArray(snap.milestones) && snap.milestones.length;
+                    if (evEmpty && msEmpty && snapOk) {
+                        milestones = snap.milestones || [];
+                        complianceEvents = snap.events || [];
+                        reportOverrides = snap.reportOverrides || {};
+                        documents = snap.documents || [];
+                    } else {
+                        complianceEvents = evStored ? JSON.parse(evStored) : DEFAULT_EVENTS.map(e => ({ ...e }));
+                        if (!evStored) saveEvents();
+
+                        milestones = msStored ? JSON.parse(msStored) : DEFAULT_MILESTONES.map(m => ({ ...m }));
+                        if (!msStored) saveMilestones();
+
+                        const docStored = localStorage.getItem(DOCUMENTS_KEY);
+                        documents = docStored ? JSON.parse(docStored) : [];
+                        loadReportOverrides();
+                    }
+                }
+
+                bindFilterEvents();
+                initDatePicker();
+                setTodayDate();
+                renderAll();
+                switchTab('milestones');
+            } catch (err) {
+                showDebug('初始化失败：' + err.message);
+            }
+        }
+
+        // ============ 发布到 GitHub：把当前管理端数据导出为 public-data.js 快照 ============
+        function publishSnapshot() {
+            const overlay = document.getElementById('publishModalOverlay');
+            if (overlay) overlay.style.display = 'flex';
+        }
+        function closePublishModal() {
+            const overlay = document.getElementById('publishModalOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+        function confirmPublishSnapshot() {
+            closePublishModal();
+            try {
+                const snapshot = {
+                    milestones: milestones,
+                    events: complianceEvents,
+                    reportOverrides: reportOverrides,
+                    documents: documents,
+                    exportedAt: new Date().toISOString()
+                };
+                const js = 'window.__PUBLIC_DATA__ = ' + JSON.stringify(snapshot, null, 2) + ';\n';
+                const blob = new Blob([js], { type: 'application/javascript' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'public-data.js';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                showMessageModal('发布成功', '已生成 public-data.js（含当前全部里程碑 / 事件 / 文档）。\n\n请把这个文件发送给我（AI助手），由我推送到 GitHub Pages —— 同事打开 GitHub 链接就能看到最新数据。\n\n之后每次更新里程碑，重新点一次「📤 发布到GitHub」并把新文件发我即可刷新。');
+            } catch (err) {
+                showDebug('发布失败：' + err.message);
+            }
+        }
+        function showMessageModal(title, body) {
+            const overlay = document.getElementById('messageModalOverlay');
+            const titleEl = document.getElementById('messageModalTitle');
+            const bodyEl = document.getElementById('messageModalBody');
+            if (titleEl) titleEl.textContent = title;
+            if (bodyEl) bodyEl.textContent = body;
+            if (overlay) overlay.style.display = 'flex';
+        }
+        function closeMessageModal() {
+            const overlay = document.getElementById('messageModalOverlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+
+        // ============ 存储 ============
+        function saveEvents() { localStorage.setItem(STORAGE_KEY_EVENTS, JSON.stringify(complianceEvents)); }
+        function saveMilestones() { localStorage.setItem(STORAGE_KEY_MILESTONES, JSON.stringify(milestones)); }
+
+        // ============ 报告编辑覆盖层 ============
+        function loadReportOverrides() {
+            try {
+                const s = localStorage.getItem(STORAGE_KEY_REPORT_OVERRIDES);
+                reportOverrides = s ? JSON.parse(s) : {};
+                if (!reportOverrides || typeof reportOverrides !== 'object') reportOverrides = {};
+            } catch (err) {
+                reportOverrides = {};
+            }
+        }
+        function saveReportOverrides() {
+            try { localStorage.setItem(STORAGE_KEY_REPORT_OVERRIDES, JSON.stringify(reportOverrides)); }
+            catch (err) { showDebug('保存报告编辑失败：' + err.message); }
+        }
+        function deleteReportOverride(evId) {
+            if (reportOverrides[evId]) { delete reportOverrides[evId]; saveReportOverrides(); }
+        }
+        // 合并覆盖层：优先返回用户编辑后的标题/描述，否则用系统生成内容
+        function applyReportOverride(ev) {
+            const ov = reportOverrides[ev.id];
+            return {
+                title: ov && ov.title != null ? ov.title : ev.eventTitle,
+                description: ov && ov.description != null ? ov.description : refineDescription(ev)
+            };
+        }
+
+        function clearAllData() {
+            if (!confirm('确定要清空全部里程碑与合规事件数据吗？此操作不可撤销，清空后页面将恢复为空。')) return;
+            try {
+                localStorage.removeItem(STORAGE_KEY_EVENTS);
+                localStorage.removeItem(STORAGE_KEY_MILESTONES);
+                complianceEvents = [];
+                milestones = [];
+                activeFilters = { category: 'all', importance: 'all', year: 'all', month: 'all' };
+                expandedYears.clear();
+                renderAll();
+                switchTab('milestones');
+                showToast('🧹 全部数据已清空');
+            } catch (err) {
+                showDebug('清空数据失败：' + err.message);
+            }
+        }
+
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            const el = document.getElementById('formEventDate');
+            if (el) el.value = today;
+        }
+
+        // ============ 自定义日期选择器 ============
+        let datePickerState = { open: false, year: new Date().getFullYear(), month: new Date().getMonth(), onSelect: null };
+
+        function initDatePicker() {
+            const picker = document.getElementById('datePicker');
+            const popup = document.getElementById('datePickerPopup');
+            if (!picker || !popup) return;
+
+            picker.addEventListener('click', (e) => {
+                if (e.target.closest('.date-picker-popup')) return;
+                toggleDatePicker();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (datePickerState.open && !picker.contains(e.target)) {
+                    closeDatePicker();
+                }
+            });
+
+            renderDatePicker();
+        }
+
+        function toggleDatePicker() {
+            const popup = document.getElementById('datePickerPopup');
+            if (!popup) return;
+            datePickerState.open = !datePickerState.open;
+            popup.style.display = datePickerState.open ? 'block' : 'none';
+            if (datePickerState.open) {
+                const input = document.getElementById('formEventDate');
+                const val = input && input.value ? new Date(input.value + 'T00:00:00') : new Date();
+                if (!isNaN(val)) {
+                    datePickerState.year = val.getFullYear();
+                    datePickerState.month = val.getMonth();
+                }
+                renderDatePicker();
+            }
+        }
+
+        function closeDatePicker() {
+            const popup = document.getElementById('datePickerPopup');
+            if (popup) popup.style.display = 'none';
+            datePickerState.open = false;
+        }
+
+        function renderDatePicker() {
+            const popup = document.getElementById('datePickerPopup');
+            if (!popup) return;
+            const { year, month } = datePickerState;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            const input = document.getElementById('formEventDate');
+            const selected = input && input.value ? input.value : '';
+
+            const weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+            const head = `
+                <div class="date-picker-head">
+                    <span>${year}年${month + 1}月</span>
+                    <div class="date-picker-nav">
+                        <button onclick="changeDatePickerMonth(-1, event)" title="上月">‹</button>
+                        <button onclick="resetDatePickerToday(event)" title="今天">⊙</button>
+                        <button onclick="changeDatePickerMonth(1, event)" title="下月">›</button>
+                    </div>
+                </div>
+                <div class="date-picker-grid">
+                    ${weekdays.map(d => `<div class="date-picker-weekday">${d}</div>`).join('')}
+                </div>`;
+
+            let cells = '';
+            for (let i = 0; i < firstDay; i++) {
+                cells += `<div class="date-picker-cell disabled"></div>`;
+            }
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateStr = formatDateStr(year, month, d);
+                const isSelected = selected === dateStr;
+                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === d;
+                cells += `<div class="date-picker-cell ${isSelected ? 'selected' : ''} ${isToday ? 'today' : ''}" onclick="selectDatePickerDate('${dateStr}', event)">${d}</div>`;
+            }
+
+            popup.innerHTML = head + `<div class="date-picker-grid">${cells}</div>`;
+        }
+
+        function formatDateStr(year, month, day) {
+            const m = String(month + 1).padStart(2, '0');
+            const d = String(day).padStart(2, '0');
+            return `${year}-${m}-${d}`;
+        }
+
+        function changeDatePickerMonth(delta, e) {
+            if (e) e.stopPropagation();
+            datePickerState.month += delta;
+            if (datePickerState.month < 0) { datePickerState.month = 11; datePickerState.year--; }
+            if (datePickerState.month > 11) { datePickerState.month = 0; datePickerState.year++; }
+            renderDatePicker();
+        }
+
+        function resetDatePickerToday(e) {
+            if (e) e.stopPropagation();
+            const now = new Date();
+            datePickerState.year = now.getFullYear();
+            datePickerState.month = now.getMonth();
+            selectDatePickerDate(formatDateStr(now.getFullYear(), now.getMonth(), now.getDate()), e);
+        }
+
+        function selectDatePickerDate(dateStr, e) {
+            if (e) e.stopPropagation();
+            const input = document.getElementById('formEventDate');
+            if (input) input.value = dateStr;
+            closeDatePicker();
+        }
+
+        // ============ 筛选事件（直接绑定，提前于渲染） ============
+        function bindFilterEvents() {
+            document.querySelectorAll('#categoryFilters .chip').forEach(chip => {
+                const activate = (e) => {
+                    if (e) e.stopPropagation();
+                    document.querySelectorAll('#categoryFilters .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    activeFilters.category = chip.dataset.cat;
+                    switchTab('milestones');
+                    renderTimeline();
+                    updateContentHeader();
+                    console.log('分类筛选 ->', activeFilters.category);
+                };
+                chip.addEventListener('click', activate);
+                chip.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } });
+            });
+
+            document.querySelectorAll('#categoryFilters .chip[data-tip]').forEach(chip => {
+                chip.addEventListener('mouseenter', () => showChipTip(chip));
+                chip.addEventListener('mouseleave', hideChipTip);
+                chip.addEventListener('focus', () => showChipTip(chip));
+                chip.addEventListener('blur', hideChipTip);
+            });
+
+            document.querySelectorAll('#importanceFilters .chip').forEach(chip => {
+                const activate = (e) => {
+                    if (e) e.stopPropagation();
+                    document.querySelectorAll('#importanceFilters .chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    activeFilters.importance = chip.dataset.imp;
+                    switchTab('milestones');
+                    renderTimeline();
+                    updateContentHeader();
+                    console.log('重要性筛选 ->', activeFilters.importance);
+                };
+                chip.addEventListener('click', activate);
+                chip.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } });
+            });
+        }
+
+        function getFilteredMilestones() {
+            let filtered = milestones.filter(m => true);
+            if (activeFilters.category !== 'all') filtered = filtered.filter(m => m.category === activeFilters.category);
+            if (activeFilters.importance !== 'all') filtered = filtered.filter(m => m.importance === activeFilters.importance);
+            if (activeFilters.year !== 'all') filtered = filtered.filter(m => (m.date || '').startsWith(activeFilters.year));
+            if (activeFilters.year !== 'all' && activeFilters.month !== 'all') filtered = filtered.filter(m => (m.date || '').substring(0, 7) === activeFilters.year + '-' + activeFilters.month);
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            return filtered;
+        }
+
+        function renderAll() {
+            renderSidebarStats();
+            renderYearFilters();
+            renderTimeline();
+            updateContentHeader();
+            renderEventList();
+            renderReport();
+        }
+
+        function renderSidebarStats() {
+            const counts = { '制度建设': 0, '技术合规': 0, '团队建设': 0, '对外合作': 0, '应急响应': 0, '监管合规': 0 };
+            milestones.forEach(m => { if (counts[m.category] !== undefined) counts[m.category]++; });
+            const setText = (id, val) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = val;
+            };
+            setText('statSystem', counts['制度建设']);
+            setText('statTech', counts['技术合规']);
+            setText('statTeam', counts['团队建设']);
+            setText('statExternal', counts['对外合作']);
+            setText('statRegulatory', counts['监管合规']);
+            setText('totalCount', milestones.length);
+        }
+
+        function getMonthsForYear(y) {
+            const map = {};
+            milestones.forEach(m => {
+                if ((m.date || '').startsWith(y)) {
+                    const mm = m.date.substring(5, 7);
+                    map[mm] = (map[mm] || 0) + 1;
+                }
+            });
+            return Object.keys(map).sort().map(mm => ({ m: mm, count: map[mm] }));
+        }
+
+        function renderYearFilters() {
+            if (activeFilters.year !== 'all' && activeFilters.month !== 'all') expandedYears.add(activeFilters.year);
+            const years = new Set();
+            milestones.forEach(m => { if (m.date) years.add(m.date.substring(0, 4)); });
+            const sortedYears = [...years].sort((a, b) => b - a);
+            const container = document.getElementById('yearFilters');
+            if (!container) return;
+            let html = `<div class="year-item ${activeFilters.year === 'all' ? 'active' : ''}" data-year="all" tabindex="0" role="button">全部年份 <span class="year-count">${milestones.length}</span></div>`;
+            sortedYears.forEach(y => {
+                const count = milestones.filter(m => (m.date || '').startsWith(y)).length;
+                const isActive = activeFilters.year === y;
+                const isExpanded = expandedYears.has(y);
+                html += `<div class="year-item ${isActive ? 'active' : ''} ${isExpanded ? 'expanded' : ''}" data-year="${y}" tabindex="0" role="button">${y}年 <span class="year-count">${count}</span></div>`;
+                const months = getMonthsForYear(y);
+                if (months.length) {
+                    html += `<div class="month-list">`;
+                    months.forEach(mo => {
+                        const mActive = isActive && activeFilters.month === mo.m ? ' active' : '';
+                        html += `<div class="month-item${mActive}" data-year="${y}" data-month="${mo.m}" tabindex="0" role="button">${mo.m}月 <span class="month-count">${mo.count}</span></div>`;
+                    });
+                    html += `</div>`;
+                }
+            });
+            container.innerHTML = html;
+            container.querySelectorAll('.year-item').forEach(item => {
+                const activate = () => {
+                    const y = item.dataset.year;
+                    if (y === 'all') { activeFilters.year = 'all'; activeFilters.month = 'all'; expandedYears.clear(); }
+                    else { activeFilters.year = y; activeFilters.month = 'all'; if (expandedYears.has(y)) expandedYears.delete(y); else expandedYears.add(y); }
+                    renderYearFilters(); renderTimeline(); updateContentHeader();
+                };
+                item.addEventListener('click', activate);
+                item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+            });
+            container.querySelectorAll('.month-item').forEach(item => {
+                const activate = () => {
+                    activeFilters.year = item.dataset.year;
+                    activeFilters.month = item.dataset.month;
+                    renderYearFilters(); renderTimeline(); updateContentHeader();
+                };
+                item.addEventListener('click', activate);
+                item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(); } });
+            });
+        }
+
+        function renderTimeline() {
+            const filtered = getFilteredMilestones();
+            const container = document.getElementById('timelineContainer');
+            const resultCount = document.getElementById('resultCount');
+            if (!container) return;
+            if (resultCount) resultCount.textContent = `共 ${filtered.length} 条记录`;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">🔍</div><h3>没有匹配的里程碑</h3><p>尝试调整筛选条件，或在「合规事件」中提交后生成报告并添加里程碑。</p></div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(m => {
+                const catClass = getCatClass(m.category);
+                const impClass = getImpClass(m.importance);
+                return `
+                <div class="timeline-item" data-id="${m.id}">
+                    <div class="timeline-dot ${impClass}"></div>
+                    <div class="milestone-card">
+                        <div class="milestone-header">
+                            <div class="milestone-title">${escapeHtml(m.title)}</div>
+                            <div class="milestone-meta">
+                                <span class="badge badge-${impClass}">${m.importance}</span>
+                                <span class="badge badge-cat ${catClass}">${m.category}</span>
+                            </div>
+                        </div>
+                        <div class="milestone-tags">📅 ${escapeHtml(m.date)} ｜ ${escapeHtml(m.category)} ｜ ${escapeHtml(m.importance)}</div>
+                        ${m.description ? `<div class="milestone-desc">${escapeHtml(m.description)}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // 旧版阶段事件渲染已弃用（现为一事件一里程碑；里程碑详情不再展示来源事件原始描述）
+
+        function renderMilestoneDoc(m) {
+            if (m.docLink) {
+                return `<div class="detail-full"><div class="detail-label">🔗 关联文档</div><div class="detail-value">${formatDocLink(m.docLink)}</div></div>`;
+            }
+            return '';
+        }
+
+        function toggleExpand(item, event) {
+            if (event.target.closest('button') || event.target.closest('a')) return;
+            document.querySelectorAll('.timeline-item.expanded').forEach(el => { if (el !== item) el.classList.remove('expanded'); });
+            item.classList.toggle('expanded');
+        }
+
+        function updateContentHeader() {
+            const title = document.getElementById('contentTitle');
+            if (activeFilters.category === 'all' && activeFilters.importance === 'all' && activeFilters.year === 'all') {
+                title.textContent = '全部里程碑';
+            } else {
+                const parts = [];
+                if (activeFilters.category !== 'all') parts.push(activeFilters.category);
+                if (activeFilters.importance !== 'all') parts.push(activeFilters.importance);
+                if (activeFilters.year !== 'all') parts.push(activeFilters.month !== 'all' ? activeFilters.year + '年' + activeFilters.month + '月' : activeFilters.year + '年');
+                title.textContent = parts.join(' · ');
+            }
+        }
+
+        // ============ Tab 切换 ============
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+            document.getElementById('tab-milestones').style.display = tab === 'milestones' ? 'block' : 'none';
+            document.getElementById('tab-events').style.display = tab === 'events' ? 'block' : 'none';
+            document.getElementById('tab-report').style.display = tab === 'report' ? 'block' : 'none';
+            if (tab === 'events') renderEventList();
+            if (tab === 'report') renderReport();
+            if (tab === 'milestones') renderTimeline();
+        }
+
+        // ============ 合规事件 提交 / 列表 ============
+        function openEventModal(editId = null) {
+            const overlay = document.getElementById('eventModalOverlay');
+            const modalTitle = document.getElementById('eventModalTitle');
+            const saveBtn = document.getElementById('saveEventBtn');
+            document.getElementById('editEventId').value = '';
+            if (editId) {
+                const ev = complianceEvents.find(e => e.id === editId);
+                if (!ev) return;
+                modalTitle.textContent = '编辑合规事件';
+                saveBtn.textContent = '更新事件';
+                document.getElementById('editEventId').value = ev.id;
+                document.getElementById('formEventTitle').value = ev.eventTitle;
+                document.getElementById('formEventDate').value = ev.date;
+                document.getElementById('formEventCategory').value = ev.category;
+                document.getElementById('formEventImportance').value = ev.importance;
+                document.getElementById('formEventDesc').value = ev.description || '';
+            } else {
+                modalTitle.textContent = '提交合规事件';
+                saveBtn.textContent = '提交事件';
+                document.getElementById('formEventTitle').value = '';
+                setTodayDate();
+                document.getElementById('formEventCategory').value = '';
+                document.getElementById('formEventImportance').value = '';
+                document.getElementById('formEventDesc').value = '';
+            }
+            overlay.style.display = 'flex';
+            document.getElementById('formEventTitle').focus();
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModalOverlay').style.display = 'none';
+            document.getElementById('editEventId').value = '';
+        }
+
+        function saveEvent() {
+            const eventTitle = document.getElementById('formEventTitle').value.trim();
+            const date = document.getElementById('formEventDate').value;
+            const category = document.getElementById('formEventCategory').value;
+            const importance = document.getElementById('formEventImportance').value;
+            const description = document.getElementById('formEventDesc').value.trim();
+            const editId = document.getElementById('editEventId').value;
+
+            if (!eventTitle || !date || !category || !importance) {
+                showToast('⚠️ 请填写所有必填字段（标题、日期、分类、重要性）', 'warning');
+                return;
+            }
+
+            if (editId) {
+                const idx = complianceEvents.findIndex(e => e.id === editId);
+                if (idx !== -1) complianceEvents[idx] = { ...complianceEvents[idx], eventTitle, date, category, importance, description };
+                showToast('✅ 事件已更新');
+            } else {
+                complianceEvents.push({ id: 'e' + Date.now().toString(), eventTitle, date, category, importance, description });
+                showToast('✅ 合规事件已提交');
+            }
+            saveEvents();
+            closeEventModal();
+            renderAll();
+        }
+
+        function deleteEvent(id) {
+            if (!confirm('确定删除这条合规事件吗？此操作不可撤销。')) return;
+            complianceEvents = complianceEvents.filter(e => e.id !== id);
+            deleteReportOverride(id);
+            saveEvents();
+            renderAll();
+            showToast('🗑️ 事件已删除');
+        }
+
+        function renderEventList() {
+            const container = document.getElementById('eventListContainer');
+            if (complianceEvents.length === 0) {
+                container.innerHTML = `<div class="empty-state"><div class="icon">📝</div><h3>暂无合规事件</h3><p>点击右上角「提交合规事件」开始记录。</p></div>`;
+                return;
+            }
+            const sorted = [...complianceEvents].sort((a, b) => new Date(b.date) - new Date(a.date));
+            container.innerHTML = sorted.map(ev => {
+                const catClass = getCatClass(ev.category);
+                const impClass = getImpClass(ev.importance);
+                return `
+                <div class="event-card">
+                    <div class="event-card-top">
+                        <div class="event-card-title">${escapeHtml(ev.eventTitle)}</div>
+                        <div class="event-card-meta">
+                            <span class="badge badge-${impClass}">${ev.importance}</span>
+                            <span class="badge badge-cat ${catClass}">${ev.category}</span>
+                        </div>
+                    </div>
+                    <div class="event-card-date">📅 ${ev.date}</div>
+                    ${ev.description ? `<div class="event-card-desc">${escapeHtml(ev.description)}</div>` : ''}
+                    <div class="event-card-actions">
+                        <button class="btn btn-outline btn-sm" onclick="openEventModal('${ev.id}')">✏️ 编辑</button>
+                        <button class="btn btn-outline btn-sm" onclick="deleteEvent('${ev.id}')" style="border-color:#ef4444;color:#f87171;">🗑️ 删除</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ============ 事件描述专业化提炼（标题原样保留；描述固定两层：做了什么/产出 → 价值/意义） ============
+        function detectAction(text) {
+            const t = String(text || '');
+            if (/发布|落地/.test(t)) return 'publish';
+            if (/启动|制定|推进|完善|修订|印发|出台/.test(t)) return 'start';
+            if (/成立|组建|设立/.test(t)) return 'establish';
+            if (/上线|部署|接入|集成/.test(t)) return 'launch';
+            if (/扩充|扩编|增员|招聘|引进|补充/.test(t)) return 'expand';
+            if (/培训|宣贯|宣讲/.test(t)) return 'train';
+            if (/演练|应急|预案/.test(t)) return 'drill';
+            if (/完成|通过|取得|获得|认证|达标/.test(t)) return 'complete';
+            return 'generic';
+        }
+
+        function cleanDesc(raw) {
+            let s = String(raw || '').trim().replace(/\s+/g, ' ');
+            s = s
+                .replace(/^(我们|公司|团队|部门|内部)(已经|已|正式|初步|开始)?/g, '')
+                .replace(/着手(制定|完善|推进|开展|建立|搭建|优化)/g, '$1')
+                .replace(/准备(发布|上线|成立|部署|实施|落地)/g, '$1')
+                .replace(/开始(制定|完善|推进|建立|搭建)/g, '$1')
+                .replace(/由原来的.+?扩充到/g, '由原有规模扩充至')
+                .replace(/更名为/g, '正式更名为')
+                .replace(/成立合规中心-审计组/g, '成立合规中心下设审计组')
+                .replace(/覆盖(.+?)三大模块/g, '覆盖$1等核心模块')
+                .replace(/制定了(.+?)SOP/g, '制定《$1SOP》')
+                .replace(/发布了?/g, '发布')
+                .replace(/。$/g, '');
+            return s;
+        }
+
+        function prodClause(cat, action) {
+            const map = {
+                '制度建设': { publish: '统一了相关操作规范与评判标准', start: '开启该领域规范化建设', complete: '形成可复用的制度成果', generic: '完善合规制度供给' },
+                '技术合规': { launch: '实现关键能力的系统化与自动化', complete: '补齐技术合规短板', generic: '提升合规技术支撑能力' },
+                '团队建设': { establish: '明确合规审计的专职化定位', expand: '形成覆盖审计、调研、法务、技术的完整合规团队架构', train: '建立常态化培训机制并统一一线合规认知', complete: '健全合规组织建制', generic: '强化合规团队能力' },
+                '对外合作': { publish: '显著提升外部合规公信力与客户信任', start: '开启外部合规协作', complete: '拓展合规合作生态', generic: '增强外部合规协同' },
+                '应急响应': { drill: '验证应急响应体系实战有效性', complete: '健全应急响应机制', generic: '提升突发合规事件处置能力' },
+                '监管合规': { apply: '补齐监管准入资质与报备闭环', complete: '健全监管合规履历', generic: '夯实监管合规基础' }
+            };
+            const byCat = map[cat] || {};
+            return byCat[action] || byCat['generic'] || '夯实合规体系基础';
+        }
+
+        function valueClause(cat, action) {
+            const map = {
+                '制度建设': { publish: '结束了此前无标准可依的状态，为合规质量与效率提升提供了制度保障', start: '迈出制度建设第一步，为后续正式发布与落地奠定基础', complete: '为常态化合规运营提供可执行的制度支撑', generic: '持续完善合规制度底座' },
+                '技术合规': { launch: '提升合规可追溯性与运营效率，客户信任度与准入能力显著增强', complete: '为风控自动化与规模化运营奠定基础', generic: '增强合规技术防线' },
+                '团队建设': { establish: '标志着合规工作从兼职协调转向专职化运作，为后续合规体系建设奠定了组织基础', expand: '团队能力从单一职能扩展为多维合规支撑，为应对日益复杂的合规要求提供了人力保障', train: '相关违规工单量明显下降，合规运营稳定性显著增强', complete: '为合规工作长效开展提供组织保障', generic: '提升合规组织战斗力' },
+                '对外合作': { publish: '为拓展更高门槛的行业客户市场创造前提条件', start: '为后续深度合作与资质互认打开空间', complete: '提升在行业生态中的合规话语权', generic: '拓宽合规合作边界' },
+                '应急响应': { drill: '显著提升面对监管检查与突发合规事件的处置能力', complete: '增强合规风险抵御韧性', generic: '强化底线风险防控' },
+                '监管合规': { apply: '提升监管准入能力与合规公信力，为业务合规开展提供资质保障', complete: '完善监管合规履历，降低监管处罚与准入风险', generic: '筑牢监管合规底线' }
+            };
+            const byCat = map[cat] || {};
+            return byCat[action] || byCat['generic'] || '持续夯实合规体系基础，为业务稳健运营提供保障';
+        }
+
+        // 标题原样保留；描述改写为一段两层式专业表述
+        function refineDescription(ev) {
+            if (!ev) return '';
+            const cat = ev.category || '';
+            const title = String(ev.eventTitle || '').trim();
+            const raw = String(ev.description || '').trim();
+            const base = raw || title;
+            const cleaned = cleanDesc(base);
+            const action = detectAction(title + ' ' + base);
+            let layer1 = cleaned;
+            // 当用户简述较短、未明显包含产出说明时，追加一句「产出」短句
+            if (cleaned.length < 30 && !/(统一|形成|实现|建立|搭建|完成|提升|健全|完善|夯实|标志|开启|迈出|补齐|拓展|增强|验证|显著|架构|机制)/.test(cleaned)) {
+                layer1 = cleaned + '，' + prodClause(cat, action);
+            }
+            const layer2 = valueClause(cat, action);
+            let result = layer1 + '。' + layer2;
+            result = result.replace(/。+/g, '。').replace(/\s+/g, '').replace(/。([，、])/g, '$1');
+            return result;
+        }
+
+        // ============ 自动生成里程碑报告（一事件 = 一里程碑，按年份分组展示） ============
+        function reportEntries() {
+            const sorted = [...complianceEvents].sort((a, b) => new Date(b.date) - new Date(a.date));
+            const groups = {};
+            sorted.forEach(e => {
+                const y = (e.date || '').substring(0, 4) || '未知年份';
+                (groups[y] = groups[y] || []).push(e);
+            });
+            return Object.keys(groups).sort((a, b) => b.localeCompare(a)).map(y => ({ year: y, events: groups[y] }));
+        }
+
+        // 渲染单张报告卡片；added=true 表示已添加为里程碑，应用区分样式
+        function _reportCard(ev, added) {
+            const catClass = getCatClass(ev.category);
+            const impClass = getImpClass(ev.importance);
+            const ov = reportOverrides[ev.id];
+            const isEditing = editingReportIds.has(ev.id);
+            const display = applyReportOverride(ev);
+            if (isEditing) {
+                return `
+                <div class="report-milestone report-mile-edit${added ? ' is-added' : ''}" data-id="${ev.id}">
+                    <div class="report-milestone-edit-fields">
+                        <div class="form-group">
+                            <label>📌 里程碑标题<span class="form-hint">系统默认沿用事件标题，可在此改写定稿</span></label>
+                            <input type="text" id="rep-title-${ev.id}" value="${escapeAttr(display.title)}">
+                        </div>
+                        <div class="form-group">
+                            <label>📝 里程碑描述<span class="form-hint">两层式：前段「做了什么/产出」，后段「价值/意义」</span></label>
+                            <textarea id="rep-desc-${ev.id}" rows="4">${escapeHtml(display.description)}</textarea>
+                        </div>
+                    </div>
+                    <div class="report-actions">
+                        <button class="btn btn-primary btn-sm" onclick="saveReportEdit('${ev.id}')">💾 保存</button>
+                        <button class="btn btn-outline btn-sm" onclick="cancelReportEdit('${ev.id}')">取消</button>
+                        ${ov ? `<button class="btn btn-ghost btn-sm" onclick="resetReportEdit('${ev.id}')">↺ 恢复系统生成</button>` : ''}
+                    </div>
+                </div>`;
+            }
+            return `
+            <div class="report-milestone${added ? ' is-added' : ''}" data-id="${ev.id}">
+                ${added ? `<div class="report-added-flag">✅ 已添加至全部里程碑</div>` : ''}
+                <div class="report-milestone-head">
+                    <div class="report-milestone-title">${escapeHtml(display.title)}</div>
+                    <div class="report-milestone-meta">
+                        <span class="badge badge-${impClass}">${ev.importance}</span>
+                        <span class="badge badge-cat ${catClass}">${ev.category}</span>
+                        ${ov ? `<span class="report-edited-badge">✏️ 已编辑</span>` : ''}
+                    </div>
+                </div>
+                <div class="report-milestone-tags">📅 ${escapeHtml(ev.date)} ｜ ${escapeHtml(ev.category)} ｜ ${escapeHtml(ev.importance)}</div>
+                <div class="report-milestone-desc">${escapeHtml(display.description)}</div>
+                <div class="report-actions">
+                    <button class="btn btn-outline btn-sm" onclick="enterReportEdit('${ev.id}')">✏️ 编辑</button>
+                    ${added
+                        ? `<button class="btn btn-outline btn-sm" onclick="deleteMilestone('ms-${ev.id}')" style="border-color:#ef4444;color:#f87171;">🗑️ 删除里程碑</button>`
+                        : `<button class="btn btn-success btn-sm" onclick="addMilestoneFromEvent('${ev.id}')">＋ 添加里程碑</button>`}
+                </div>
+            </div>`;
+        }
+
+        function renderReport() {
+            const container = document.getElementById('reportContainer');
+            const countEl = document.getElementById('reportCount');
+            if (complianceEvents.length === 0) {
+                countEl.textContent = '';
+                container.innerHTML = `<div class="empty-state"><div class="icon">📊</div><h3>暂无报告</h3><p>请先在「合规事件」中提交事件，系统将自动为每条事件生成独立里程碑。</p></div>`;
+                return;
+            }
+            const groups = reportEntries();
+            const totalEvents = complianceEvents.length;
+            const addedCount = complianceEvents.filter(e => milestones.some(m => m.sourceEventId === e.id)).length;
+            const editedCount = complianceEvents.filter(e => reportOverrides[e.id]).length;
+            countEl.textContent = `共 ${totalEvents} 条事件 · 已添加 ${addedCount} 条里程碑 · 已编辑 ${editedCount} 条`;
+
+            // 按添加顺序（milestones 数组顺序）收集已添加的事件
+            const addedEvents = milestones
+                .map(m => complianceEvents.find(e => e.id === m.sourceEventId))
+                .filter(e => e);
+
+            // 前面：仅渲染未添加的事件（保持年份分组）
+            let html = groups.map(g => {
+                const visible = g.events.filter(ev => !milestones.some(m => m.sourceEventId === ev.id));
+                if (visible.length === 0) return '';
+                const cards = visible.map(ev => _reportCard(ev, false)).join('');
+                return `
+                <div class="report-year">
+                    <div class="report-year-head">${escapeHtml(g.year)} 年<span class="report-year-sub">待添加 ${visible.length} 条</span></div>
+                    ${cards}
+                </div>`;
+            }).join('');
+
+            // 底部：已添加区块（按添加顺序）
+            if (addedEvents.length > 0) {
+                const cards = addedEvents.map(ev => _reportCard(ev, true)).join('');
+                html += `
+                <div class="report-added-section">
+                    <div class="report-year-head report-added-head">✅ 已添加至全部里程碑<span class="report-year-sub">按添加顺序 · 共 ${addedEvents.length} 条</span></div>
+                    ${cards}
+                </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        // ============ 报告编辑：进入 / 保存 / 取消 / 恢复 ============
+        function enterReportEdit(evId) {
+            editingReportIds.add(evId);
+            renderReport();
+            const input = document.getElementById('rep-title-' + evId);
+            if (input) { input.focus(); input.select(); }
+        }
+        function cancelReportEdit(evId) {
+            editingReportIds.delete(evId);
+            renderReport();
+        }
+        function saveReportEdit(evId) {
+            const titleEl = document.getElementById('rep-title-' + evId);
+            const descEl = document.getElementById('rep-desc-' + evId);
+            if (!titleEl || !descEl) return;
+            const title = titleEl.value.trim();
+            const description = descEl.value.trim();
+            if (!title) { showToast('⚠️ 标题不能为空', 'warning'); return; }
+            reportOverrides[evId] = { title, description };
+            saveReportOverrides();
+            // 若该事件已添加为里程碑，则同步更新，保证报告与全部里程碑一致
+            const msIdx = milestones.findIndex(m => m.sourceEventId === evId);
+            if (msIdx !== -1) {
+                milestones[msIdx].title = title;
+                milestones[msIdx].description = description;
+                saveMilestones();
+            }
+            editingReportIds.delete(evId);
+            renderReport();
+            renderTimeline();
+            updateContentHeader();
+            showToast(msIdx !== -1 ? '✅ 报告已保存（已同步全部里程碑）' : '✅ 报告内容已保存');
+        }
+        function resetReportEdit(evId) {
+            const ev = complianceEvents.find(e => e.id === evId);
+            deleteReportOverride(evId);
+            editingReportIds.delete(evId);
+            // 若该事件已添加为里程碑，回滚到系统生成内容
+            if (ev) {
+                const msIdx = milestones.findIndex(m => m.sourceEventId === evId);
+                if (msIdx !== -1) {
+                    milestones[msIdx].title = ev.eventTitle;
+                    milestones[msIdx].description = refineDescription(ev);
+                    saveMilestones();
+                }
+            }
+            renderReport();
+            renderTimeline();
+            showToast('↺ 已恢复系统生成内容');
+        }
+
+        function addMilestoneFromEvent(evId) {
+            const ev = complianceEvents.find(e => e.id === evId);
+            if (!ev) return;
+            if (milestones.some(m => m.sourceEventId === ev.id)) {
+                showToast('该事件已添加为里程碑', 'warning');
+                return;
+            }
+            const ov = reportOverrides[ev.id];
+            const milestone = {
+                id: 'ms-' + ev.id,
+                title: ov && ov.title != null ? ov.title : ev.eventTitle,
+                date: ev.date,
+                category: ev.category,
+                importance: ev.importance,
+                status: '已完成',
+                description: ov && ov.description != null ? ov.description : refineDescription(ev),
+                sourceEventId: ev.id,
+                rawDescription: ev.description || ''
+            };
+            milestones.push(milestone);
+            saveMilestones();
+            renderAll();
+            renderReport();
+            showToast('✅ 已添加里程碑：' + ev.eventTitle);
+        }
+
+        function deleteMilestone(id) {
+            if (!confirm('确定删除这条里程碑吗？此操作不可撤销。')) return;
+            milestones = milestones.filter(m => m.id !== id);
+            saveMilestones();
+            renderAll();
+            showToast('🗑️ 里程碑已删除');
+        }
+
+        // ============ 导出 ============
+        function exportData() {
+            const filtered = getFilteredMilestones();
+            const exportData = filtered.map(m => ({
+                标题: m.title, 日期: m.date, 分类: m.category, 重要性: m.importance, 状态: m.status,
+                描述: m.description
+            }));
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `合规里程碑_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('📥 数据已导出');
+        }
+
+        // ============ 工具 ============
+        function getCatClass(cat) {
+            const map = { '制度建设': 'cat-system', '技术合规': 'cat-tech', '团队建设': 'cat-team', '对外合作': 'cat-external', '应急响应': 'cat-emergency', '监管合规': 'cat-regulatory' };
+            return map[cat] || '';
+        }
+        function getImpClass(imp) { return { '战略级': 'strategic', '重要级': 'important', '常规级': 'routine' }[imp] || 'routine'; }
+        function showChipTip(el) {
+            const tip = el.getAttribute('data-tip');
+            if (!tip) return;
+            let box = document.getElementById('globalChipTip');
+            if (!box) { box = document.createElement('div'); box.id = 'globalChipTip'; box.className = 'chip-tip'; document.body.appendChild(box); }
+            box.textContent = tip;
+            box.style.display = 'block';
+            const r = el.getBoundingClientRect();
+            const tipW = box.offsetWidth, tipH = box.offsetHeight;
+            let left = r.right + 10;
+            if (left + tipW > window.innerWidth - 8) left = r.left - tipW - 10;
+            if (left < 8) left = 8;
+            let top = r.top + r.height / 2 - tipH / 2;
+            if (top < 8) top = 8;
+            if (top + tipH > window.innerHeight - 8) top = window.innerHeight - tipH - 8;
+            box.style.left = left + 'px';
+            box.style.top = top + 'px';
+        }
+        function hideChipTip() { const box = document.getElementById('globalChipTip'); if (box) box.style.display = 'none'; }
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str == null ? '' : str;
+            return div.innerHTML;
+        }
+        function escapeAttr(str) {
+            return escapeHtml(str).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+        function formatDocLink(link) {
+            if (/^https?:\/\//.test(link)) return `<a href="${link}" target="_blank" rel="noopener" style="color:#3b82f6;">${escapeHtml(link)}</a>`;
+            return escapeHtml(link);
+        }
+        function showToast(message, type = 'success') {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            if (type === 'warning') { toast.style.background = '#f59e0b'; toast.style.boxShadow = '0 8px 32px rgba(245,158,11,0.3)'; }
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2500);
+        }
+
+        document.getElementById('eventModalOverlay').addEventListener('click', function (e) { if (e.target === this) closeEventModal(); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeEventModal(); });
+
+        init();
+    </script>
+</body>
+</html>
